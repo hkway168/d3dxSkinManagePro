@@ -3,14 +3,14 @@ chcp 65001 >nul
 setlocal EnableExtensions
 
 rem ============================================================
-rem  d3dxSkinManage 一键编译脚本
+rem  d3dxSkinManagePro 一键编译脚本
 rem  用法: 双击运行，或 buildtools\build.bat [onedir] [nopause]
 rem    onedir  - 生成目录版 (启动更快)，默认生成单文件 exe
 rem    nopause - 结束时不暂停
-rem  输出: dist\d3dxSkinManage\
+rem  输出: dist\d3dxSkinManagePro\
 rem ============================================================
 
-set "APP_NAME=d3dxSkinManage"
+set "APP_NAME=d3dxSkinManagePro"
 set "MODE=--onefile"
 set "NOPAUSE="
 for %%A in (%*) do (

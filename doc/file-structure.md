@@ -1,51 +1,29 @@
 ```
 \
-├── home                        // 存放用户的文件夹
-│   ├── GenshinImpact               // 用户文件夹，每一个用户的配置数据是独立的
-│   │   ├── classification              // 分类依据
-│   │   │   └── ...                         // 分类依据文件
-│   │   │
-│   │   ├── modsIndex                   // mods 索引
-│   │   │   └── ...                         // mods 索引文件
-│   │   │
-│   │   ├── work                        // 工作目录，同时作为 XXMI Launcher 的导入器目录
-│   │   │   ├── Mods                        // 加载的 Mods 会解压到这个文件夹
-│   │   │   ├── d3d11.dll                   // 最重要的文件，由 XXMI Launcher 部署
-│   │   │   ├── d3dx.ini                    // 3DMiGoto 配置，由 XXMI Launcher 维护
-│   │   │   └── ...                         // 3DMiGoto 的其他文件
-│   │   │
-│   │   ├── configuration               // 用户配置文件，无特殊需要不要尝试去改动这个文件
-│   │   ├── description.txt             // 用户描述文件，最简单的文本文件
-│   │   └── picture.jpg                 // 用户头像
-│   │
-│   ├── StarRail                    // 用户文件夹
-│   └── ...
+├── home                        // 用户数据，每个用户独立
+│   └── <用户名>
+│       ├── classification          // 分类配置
+│       ├── modsIndex               // Mod 索引
+│       ├── work                    // 3DMigoto 工作目录 (XXMI Launcher 导入器目录)
+│       │   └── Mods                    // 已加载的 Mod
+│       ├── configuration           // 用户配置
+│       ├── description.txt         // 用户描述
+│       └── picture.png             // 用户头像
 │
-├── local                       // 程序资源
-│   ├── 7zip                        // 7zip，很靠谱的解压缩软件
-│   │   ├── 7z.dll
-│   │   └── 7z.exe
-│   │
+├── local                       // 程序资源与全局配置
+│   ├── 7zip                        // 7z.exe / 7z.dll
+│   ├── configuration               // 全局配置
 │   └── iconbitmap.ico              // 程序图标
 │
-├── resources                   // 用户资源
-│   ├── 7zip                    // 这应该是个失误
-│   │   ├── 7z.dll
-│   │   └── 7z.exe
-│   │
-│   ├── cache                   // 缓存文件夹
-│   │   └── ...
-│   │
-│   ├── mods                    // Mods 文件夹
-│   │   └── ...
-│   │
-│   ├── preview                 // 预览图文件夹
-│   │   └── ...
-│   │
-│   └── thumbnail               // 头像图文件夹
-│       ├── _redirection.ini        // 重定向配置文件
-│       └── ...
+├── resources                   // 共享资源
+│   ├── mods                        // Mod 原始文件 (SHA-1 命名)
+│   ├── preview                     // 预览图
+│   ├── thumbnail                   // 分类与对象缩略图
+│   ├── backup                      // 「应用到原始文件」的旧文件备份
+│   └── cache                       // 临时文件
 │
-├── d3dxSkinManage.exe          // 主程序
-└── update.exe                  // 更新程序
+├── fixtool                     // Mod 修复脚本
+├── plugins                     // 插件
+├── logs                        // 运行日志
+└── d3dxSkinManagePro.exe       // 主程序
 ```

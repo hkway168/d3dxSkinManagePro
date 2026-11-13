@@ -17,6 +17,7 @@ from .block import Block
 from .interface import Interface
 from .annotation_toplevel import AnnotationToplevel
 from . import dpi
+from . import icon
 
 from constant import *
 
@@ -131,7 +132,7 @@ def initial():
     style.theme_use(core.env.configuration.style_theme)
     apply_style()
 
-    mainwindow.title(core.env.PROJECT)
+    mainwindow.title(f"{core.env.PROJECT} v{core.env.VERSION}")
     _sw = mainwindow.winfo_screenwidth()
     _sh = mainwindow.winfo_screenheight()
     _w = min(dpi.scale(1440), _sw - dpi.scale(40))
@@ -147,11 +148,17 @@ def initial():
 
     else:
         try:
+            # iconbitmap(default=) 同时作为后续子窗口的默认图标
             mainwindow.iconbitmap(default=_icon)
             mainwindow.iconbitmap(bitmap=_icon)
 
         except Exception as e:
             core.log.error(f"窗口图标设置异常 {e.__class__.__name__}: {e}", L.WINDOW)
+
+        # Tk 按固定的 16 / 32 像素挑选 ICO 帧, 高 DPI 下会被系统拉伸,
+        # 这里按标题栏实际需要的尺寸重设一次
+        if not icon.apply(mainwindow, _icon):
+            core.log.warn("按 DPI 重设窗口图标失败, 高缩放比下图标可能模糊", L.WINDOW)
 
     frame_title.pack(side="top", fill="x")
     frame_block.pack(side="top", fill="both", expand=True)

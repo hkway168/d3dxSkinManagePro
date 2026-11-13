@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "d3dxSkinManage",
+            "name": "d3dxSkinManagePro",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/d3dxSkinManage.py",
+            "program": "${workspaceFolder}/src/d3dxSkinManagePro.py",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "justMyCode": true

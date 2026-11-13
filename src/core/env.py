@@ -10,7 +10,9 @@ from .exceptions import *
 from .structure import *
 
 
-PROJECT = "d3dxSkinManage"
+PROJECT = "d3dxSkinManagePro"
+
+VERSION = "1.0.0"
 
 CODE_NAME = "kamisa"
 
@@ -76,6 +78,7 @@ except Exception:
 
 __all__ = [
     "PROJECT",
+    "VERSION",
     "CODE_NAME",
     "base",
     "directory",

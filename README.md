@@ -1,4 +1,4 @@
-# d3dxSkinManagePlus
+# d3dxSkinManagePro
 
 ## 简介
 
@@ -17,6 +17,7 @@
   - 右键预览区域将剪贴板图片设为预览图；
   - 拖入图片设置预览图，支持 `.png` / `.jpg` / `.jpeg` / `.bmp` / `.gif` / `.webp`，非 png/jpg 自动转换；
   - 替换已有预览图前会提示是否覆盖，并自动清理旧文件。
+- **Mod 修复**：可在 Mod 的解压缓存中运行修复脚本，修复满意后通过「应用到原始文件」写回，详见 [Mod 修复](#mod-修复)。
 - **主题化右键菜单**：右键菜单跟随 ttkbootstrap 主题样式。
 - **内置使用帮助**：「关于」页面替换为完整的使用说明。
 - **一键打包**：提供 `buildtools/build.bat`，自动创建虚拟环境、安装依赖并用 PyInstaller 打包。
@@ -91,6 +92,17 @@ buildtools\build.bat [onedir] [nopause]
 7. 点击「启动游戏」，由 XXMI Launcher 注入并启动游戏。
 
 更详细的说明见程序内「关于」页面。
+
+## Mod 修复
+
+将修复脚本（`.py` 或 `.exe`）放入 `fixtool` 目录，然后：
+
+- **修复单个 Mod**：Mod 右键「使用脚本修复Mod」，在该 Mod 的解压缓存目录中运行（需先加载过一次）；
+- **修复所有 Mod**：分类 / 对象右键「使用脚本修复所有Mod」，在 `work/Mods` 中运行。
+
+脚本只修改解压缓存，原始文件不受影响，删除缓存后重新加载即可还原。修复满意后，可通过 Mod 右键「应用到原始文件」重新打包替换原始文件（SHA 会改变，旧文件备份到 `resources/backup`）。
+
+> 运行 `.py` 脚本需要 Python，找不到时可在 `local/configuration` 中设置 `fixtool_python` 为 `python.exe` 路径。
 
 ## 工作方式
 

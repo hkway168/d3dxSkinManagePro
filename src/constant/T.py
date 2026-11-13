@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-TEXT_HELP = """d3dxSkinManage 使用帮助
+TEXT_HELP = """d3dxSkinManagePro 使用帮助
 （3DMigoto Mods 辅助管理工具）
 
 
