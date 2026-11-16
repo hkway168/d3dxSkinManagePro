@@ -17,8 +17,8 @@ import core
 from constant import *
 from window.popup_menu import PopupMenu
 
-from . import unload_mods
 from . import fix_mod_script
+from . import modify_key_swap
 
 
 class selfstatus (object):
@@ -564,34 +564,29 @@ class ChoicesContextMenu (object):
         iid = self.treeview.identify_row(event.y)
         is_mod = bool(iid) and core.module.mods_index.get_item(iid) is not None
 
-        # 插件兼容: 记录右键命中的条目 (原版 value_choice_item)
-        interface = core.window.interface.mods_manage
-        interface.value_choice_item = iid or ""
+        # 仅在右键具体 Mod 时出现菜单, 空白处 / "卸载该对象" 不显示
+        if not is_mod: return
 
         self.menu.clear()
 
-        # 内置菜单仅在右键具体 Mod 时出现, 空白处 / "卸载该对象" 不显示
-        if is_mod:
-            # 右键时同步选中该 Mod, 便于确认操作对象
-            self.treeview.selection_set(iid)
-            self.treeview.focus(iid)
+        # 右键时同步选中该 Mod, 便于确认操作对象
+        self.treeview.selection_set(iid)
+        self.treeview.focus(iid)
 
-            cache_path = get_cache_path(iid)
-            source_path = get_source_path(iid)
+        cache_path = get_cache_path(iid)
+        source_path = get_source_path(iid)
 
-            self.menu.add_command(label='修改 Mod 信息', command=lambda: modify_item_data(iid))
-            self.menu.add_command(label='查看缓存文件', command=lambda: open_in_explorer(cache_path), enabled=cache_path is not None)
-            self.menu.add_command(label='删除缓存文件', command=lambda: delete_cache(iid), enabled=cache_path is not None)
-            self.menu.add_command(label='查看原始文件', command=lambda: open_in_explorer(source_path), enabled=source_path is not None)
-            self.menu.add_command(label='应用到原始文件', command=lambda: apply_cache_to_source(iid), enabled=cache_path is not None and source_path is not None)
-            self.menu.add_command(label='使用脚本修复Mod', command=lambda: fix_mod_script.fix_with_script(iid), enabled=cache_path is not None)
-            unload_mods.add_to_menu(self.menu, None, with_class=False)
+        self.menu.add_command(label='修改 Mod 信息', command=lambda: modify_item_data(iid))
+        # 仅解压缓存中存在 [Key*] 节的合并 Mod 可编辑切换键
+        has_key_swap = cache_path is not None and modify_key_swap.has_key_swap(iid)
+        self.menu.add_command(label='编辑 Mod 切换键', command=lambda: modify_key_swap.modify_key_swap(iid), enabled=has_key_swap)
+        self.menu.add_command(label='查看缓存文件', command=lambda: open_in_explorer(cache_path), enabled=cache_path is not None)
+        self.menu.add_command(label='删除缓存文件', command=lambda: delete_cache(iid), enabled=cache_path is not None)
+        self.menu.add_command(label='查看原始文件', command=lambda: open_in_explorer(source_path), enabled=source_path is not None)
+        self.menu.add_command(label='应用到原始文件', command=lambda: apply_cache_to_source(iid), enabled=cache_path is not None and source_path is not None)
+        self.menu.add_command(label='使用脚本修复Mod', command=lambda: fix_mod_script.fix_with_script(iid), enabled=cache_path is not None)
 
-        # 插件追加的菜单项 (treeview_choices_menu.add_label)
-        extra = interface.treeview_choices_menu.apply(self.menu, iid or "", separator=is_mod)
-
-        if is_mod or extra:
-            self.menu.popup(event.x_root, event.y_root)
+        self.menu.popup(event.x_root, event.y_root)
 
 
 choices_menu: ChoicesContextMenu | None = None

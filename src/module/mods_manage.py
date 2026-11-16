@@ -334,21 +334,6 @@ class ModsManage (object):
         return False
 
 
-    # ---------------------------------------------- 插件兼容 (原版 1.5.19+ 同名接口)
-    def is_load_sha(self, sha: str) -> bool:
-        """是否为已加载 SHA (同 is_loaded_sha)"""
-        return self.is_loaded_sha(sha)
-
-
-    def is_have_cache_load(self, sha: str) -> bool:
-        """是否拥有已卸载的缓存 (工作目录中存在 DISABLED-SHA 文件夹)"""
-        try:
-            return os.path.isdir(os.path.join(core.userenv.directory.work_mods, f"{K.DISABLED}-{sha}"))
-
-        except Exception:
-            return False
-
-
     def refresh(self):
         core.log.info("刷新 Mods 管理索引缓存...", L.MODULE_MODS_MANAGE)
         self.clear()

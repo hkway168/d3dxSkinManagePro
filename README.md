@@ -6,18 +6,26 @@
 
 本分支为**纯本地运行**版本：已移除启动自动更新、在线 Mod 仓库与下载功能，不再依赖网络。
 
+原版的插件机制也已移除（不再有 `plugins` 目录），常用插件的功能已直接内置到程序中。
+
 ## 主要改动
 
 - **多用户管理**：登录界面可直接创建用户（用户名、描述、头像、游戏路径，可从已有用户复制分类配置），支持注销返回登录界面。
 - **对接 XXMI Launcher**：不再内置 3DMigoto 版本压缩包，改为将 [XXMI Launcher](https://github.com/SpectrumQT/XXMI-Launcher) 对应导入器（GIMI / SRMI / ZZMI / WWMI / HIMI / EFMI）的目录指向当前用户的 `work` 目录，由其负责 3DMigoto 的下载、更新与注入启动。
 - **高 DPI 适配**：适配 4K 等高缩放比例屏幕，行高、列宽、缩略图按系统 DPI 自动换算。
 - **分类管理增强**：分类支持添加、置顶 / 上移 / 下移 / 置底、重命名、删除；对象支持排序、移出分类。
+- **Mod 状态着色**：选择列表中正在使用的 Mod 显示为绿色，仅存在解压缓存的 Mod 显示为黄色。
+- **Mod 右键菜单**：修改 Mod 信息、编辑 Mod 切换键、查看 / 删除缓存文件、查看原始文件、应用到原始文件、使用脚本修复 Mod；分类 / 对象右键可卸载本分类或全部 Mods。
+- **编辑 Mod 切换键**（移植自黎愔的 modify_key_swap 插件）：
+  - 合并 Mod（解压缓存的 ini 中含 `[Key*]` 节）可在右键菜单中编辑初始 Mod 值、循环索引列表以及 `key` / `back` 切换按键，保存时校验按键格式并保留 ini 原有编码；
+  - 鼠标悬浮在合并 Mod 上时，提示框中会列出它的切换键。
 - **预览图增强**：
   - 左键预览区域全屏查看，单击或 `Esc` 关闭；
   - 右键预览区域将剪贴板图片设为预览图；
   - 拖入图片设置预览图，支持 `.png` / `.jpg` / `.jpeg` / `.bmp` / `.gif` / `.webp`，非 png/jpg 自动转换；
   - 替换已有预览图前会提示是否覆盖，并自动清理旧文件。
 - **Mod 修复**：可在 Mod 的解压缓存中运行修复脚本，修复满意后通过「应用到原始文件」写回，详见 [Mod 修复](#mod-修复)。
+- **工具页**：强迫症预览图裁剪、缓存清理（扫描并清理已无用的解压缓存与残留临时文件）、可选标签编辑。
 - **主题化右键菜单**：右键菜单跟随 ttkbootstrap 主题样式。
 - **内置使用帮助**：「关于」页面替换为完整的使用说明。
 - **一键打包**：提供 `buildtools/build.bat`，自动创建虚拟环境、安装依赖并用 PyInstaller 打包。
@@ -51,7 +59,7 @@ pip install -r requirements.txt
 ### 运行
 
 ```
-python ./src/d3dxSkinManage.py
+python ./src/d3dxSkinManagePro.py
 ```
 
 > 导入与加载 Mod 依赖 7-Zip，请确保 `local/7zip/7z.exe`（及 `7z.dll`）存在。
@@ -77,7 +85,7 @@ buildtools\build.bat [onedir] [nopause]
 4. PyInstaller 打包（若存在 `local/iconbitmap.ico` 则作为程序图标）；
 5. 复制 `local/7zip` 与图标等运行组件。
 
-输出目录：`dist/d3dxSkinManage/`
+输出目录：`dist/d3dxSkinManagePro/`
 
 ## 快速上手
 
@@ -88,7 +96,7 @@ buildtools\build.bat [onedir] [nopause]
 3. 点击「启动 XXMI Launcher」，在其中完成 3DMigoto 的安装 / 更新（会部署到当前用户的 `work` 目录）。
 4. 回到「Mods 管理」，在分类列表右键「添加分类」，在对象列表右键「添加对象」。
 5. 将 Mod 压缩包（`.zip` / `.rar` / `.7z`）、单个 `.ini` 文件或文件夹拖入主窗口，填写 Mod 信息后确定。
-6. 在「选择」列表中双击 Mod 即可加载；选中 Mod 后拖入图片可设置预览图。
+6. 在「选择」列表中双击 Mod 即可加载；选中 Mod 后拖入图片可设置预览图；合并 Mod 可右键「编辑 Mod 切换键」修改切换按键。
 7. 点击「启动游戏」，由 XXMI Launcher 注入并启动游戏。
 
 更详细的说明见程序内「关于」页面。

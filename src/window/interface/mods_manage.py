@@ -6,7 +6,6 @@ import core
 from constant import *
 
 from .. import dpi
-from ..menu_extension import MenuExtension
 
 CMD_UNLOAD = "--X--"
 
@@ -97,7 +96,7 @@ class ModsManage(object):
 
         # self.treeview_choices.bind("<Motion>", self.bin_treeview_choices_motion)
         self.treeview_choices.bind("<Motion>", self.bin_treeview_choices_motion)
-        self.treeview_choices.bind("<Leave>", lambda *_: core.window.annotation_toplevel.withdraw())
+        self.treeview_choices.bind("<Leave>", self.bin_treeview_choices_leave)
 
         # self.label_preview.bind("<Motion>", lambda *_: core.window.annotation_toplevel.update_position())
         # self.label_preview.bind("<Enter>", lambda *_: self.bin_update_explain())
@@ -122,14 +121,6 @@ class ModsManage(object):
     def __init__(self, master):
         self.master = master
         self.install(master)
-
-        # 插件兼容: 与原版同名的右键菜单扩展点及右键命中条目
-        self.treeview_classification_menu = MenuExtension()
-        self.treeview_objects_menu = MenuExtension()
-        self.treeview_choices_menu = MenuExtension()
-        self.value_classification_item = ""
-        self.value_object_item = ""
-        self.value_choice_item = ""
 
 
     def sbin_clear_treeview_classification(self):
@@ -251,7 +242,23 @@ class ModsManage(object):
             text += f"作者：{author}\n\n{explath}"
             if atags: text += f"\n\n{atags}"
 
+            # 合并 Mod 追加显示切换键 (仅有解压缓存的 Mod)
+            try:
+                from additional import modify_key_swap
+                text += modify_key_swap.get_hover_text(iid)
+            except Exception: ...
+
             core.window.annotation_toplevel.deiconify_content(text, 1)
+
+
+    def bin_treeview_choices_leave(self, *_):
+        core.window.annotation_toplevel.withdraw()
+
+        # 离开列表后清空切换键缓存, 下次悬浮时重新读取 ini (文件可能已被修改)
+        try:
+            from additional import modify_key_swap
+            modify_key_swap.clear_hover_cache()
+        except Exception: ...
 
 
     def bin_update_explain(self):

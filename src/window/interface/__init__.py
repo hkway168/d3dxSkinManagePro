@@ -6,7 +6,6 @@ from .about import About
 from .mods_manage import ModsManage
 from .d3dx_manage import D3dxManage
 from .tools import Tools
-from .plugins import Plugins
 
 
 class Interface(object):
@@ -28,14 +27,10 @@ class Interface(object):
         self.frame_tools = ttkbootstrap.Frame(self.notebook)
         self.notebook.add(self.frame_tools, text='工具')
 
-        self.frame_plugins = ttkbootstrap.Frame(self.notebook)
-        self.notebook.add(self.frame_plugins, text='插件')
-
         self.mods_manage = ModsManage(self.frame_mods_manage)
         self.d3dx_manage = D3dxManage(self.frame_d3dx_manage)
         self.about = About(self.frame_about)
         self.tools = Tools(self.frame_tools)
-        self.plugins = Plugins(self.frame_plugins)
 
 
     def initial(self):

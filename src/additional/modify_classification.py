@@ -545,15 +545,10 @@ class _ContextMenu (object):
 
         self.menu.clear()
         self.build(iid)
-        self.apply_extension(iid or "")
         self.menu.popup(event.x_root, event.y_root)
 
     def build(self, iid: str):
         raise NotImplementedError
-
-    def apply_extension(self, iid: str):
-        """插件兼容: 追加通过 treeview_*_menu.add_label 注册的菜单项"""
-        ...
 
 
 def _add_fix_all(menu):
@@ -562,14 +557,6 @@ def _add_fix_all(menu):
     except Exception: enabled = False
     menu.add_separator()
     menu.add_command(label='使用脚本修复所有Mod', command=fix_mod_script.fix_all_with_script, enabled=enabled)
-
-
-def _extension_of(name: str, value_name: str, iid: str, menu):
-    interface = core.window.interface.mods_manage
-    setattr(interface, value_name, iid)
-    extension = getattr(interface, name, None)
-    if extension is not None:
-        extension.apply(menu, iid, separator=True)
 
 
 class ClassificationContextMenu (_ContextMenu):
@@ -581,9 +568,6 @@ class ClassificationContextMenu (_ContextMenu):
         self.menu.add_command(label='管理分类', command=lambda: manage_classification(preset))
         unload_mods.add_to_menu(self.menu, iid or None)
         _add_fix_all(self.menu)
-
-    def apply_extension(self, iid):
-        _extension_of("treeview_classification_menu", "value_classification_item", iid, self.menu)
 
 
 class ObjectContextMenu (_ContextMenu):
@@ -597,9 +581,6 @@ class ObjectContextMenu (_ContextMenu):
         self.menu.add_command(label='管理子对象', command=lambda: manage_objects(classname, iid or None), enabled=enabled)
         unload_mods.add_to_menu(self.menu, classname)
         _add_fix_all(self.menu)
-
-    def apply_extension(self, iid):
-        _extension_of("treeview_objects_menu", "value_object_item", iid, self.menu)
 
 
 def _start(target, *args):

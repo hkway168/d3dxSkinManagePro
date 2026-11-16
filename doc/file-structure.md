@@ -23,7 +23,6 @@
 │   └── cache                       // 临时文件
 │
 ├── fixtool                     // Mod 修复脚本
-├── plugins                     // 插件
 ├── logs                        // 运行日志
 └── d3dxSkinManagePro.exe       // 主程序
 ```

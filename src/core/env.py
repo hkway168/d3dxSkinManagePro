@@ -22,7 +22,6 @@ class __base (Directory):
     home = "home"
     resources = "resources"
     local = "local"
-    plugins = "plugins"
 
 base = __base()
 
