@@ -37,6 +37,25 @@ CLOSED_EXIT_CODES = {
     0xC000013A,  # STATUS_CONTROL_C_EXIT
 }
 
+# 常见失败退出码 -> 左下角状态栏提示 (键均为无符号 32 位值)
+# 1          : 脚本抛出了未捕获的 Python 异常, 最常见的是 Python 版本过低
+#              (如 GIFixVersion72.py 用到 list[int] / list[dict] | None 等写法, 需要 3.10+)
+# 2          : argparse 参数错误, 或 .py 文件路径 / 编码有问题
+# 9009       : 命令未找到 / 调用到了系统自带的应用商店占位程序 WindowsApps\python.exe, 即这台电脑没有装 Python
+# 0xC0000005 : 访问冲突, 进程崩溃
+# 0xC0000135 : 缺少依赖 DLL (多见于打包的 .exe)
+# 0xC0000142 : DLL 初始化失败 (常由杀毒软件 / 系统环境拦截导致)
+# 0xC0000409 : 栈缓冲区溢出, 进程被系统终止
+FAILURE_HINTS = {
+    1: '脚本报错, 请装 Python 3.10+',
+    2: '脚本参数或路径有误',
+    9009: '未装 Python, 请装 3.10+',
+    0xC0000005: '脚本崩溃(访问冲突)',
+    0xC0000135: '缺少依赖DLL',
+    0xC0000142: 'DLL初始化失败, 检查杀毒拦截',
+    0xC0000409: '脚本崩溃(栈溢出)',
+}
+
 # 正在运行修复脚本的目标 (Mod SHA 或 ALL_KEY), 防止对同一目录重复执行
 ALL_KEY = '*'
 _running: set[str] = set()
@@ -250,7 +269,11 @@ def _wait_process(key: str, script: str, process: subprocess.Popen, reload_hint)
         _set_status(f'修复窗口已关闭 ({name}), 请自行确认修复结果{hint}')
 
     else:
-        _set_status(f'修复脚本 {name} 异常退出 (返回码 {code}), 请检查脚本窗口输出', 1)
+        # Windows 的异常退出码可能为负数 (有符号), 统一按无符号 32 位匹配
+        unsigned = code & 0xFFFFFFFF
+        hint_text = FAILURE_HINTS.get(unsigned, '请看脚本窗口输出')
+        shown = code if unsigned < 0x10000 else f'0x{unsigned:08X}'
+        _set_status(f'{name} 退出({shown}): {hint_text}', 1)
 
 
 def _set_status(message: str, level: int = 0):
