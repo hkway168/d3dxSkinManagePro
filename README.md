@@ -101,6 +101,36 @@ buildtools\build.bat [onedir] [nopause]
 
 更详细的说明见程序内「关于」页面。
 
+## 原版 d3dxSkinManage 用户使用指引
+
+本程序与原版 d3dxSkinManage（v1.5.x）的数据目录与文件格式兼容，**无需导入或转换**，直接复制到原版根目录即可使用：
+
+1. **备份**：先备份原版根目录下的 `home` 与 `resources` 文件夹（以防万一）。
+2. **复制**：从 [Releases](https://github.com/hkway168/d3dxSkinManagePro/releases) 下载 `d3dxSkinManagePro-vX.X.X-win64.zip`，将压缩包内 `d3dxSkinManagePro` 文件夹中的**全部内容**（`d3dxSkinManagePro.exe` 与 `local` 文件夹）复制到原版根目录（即 `d3dxSkinManage.exe` 所在目录），提示同名文件时选择覆盖（仅为 `local/7zip` 与 `local/iconbitmap.ico`）。
+3. **启动**：双击 `d3dxSkinManagePro.exe`，登录界面会列出原有的全部用户，登录后分类、对象、Mod、预览图、缩略图与已加载状态均与原版一致。
+4. **对接 XXMI Launcher**：本程序不再使用原版的 3DMigoto 版本选择，登录后进入「环境设置」，按 [快速上手](#快速上手) 第 2、3 步选择 XXMI 目录与模组导入器，再在 XXMI Launcher 中安装 / 更新 3DMigoto（会部署到该用户原有的 `work` 目录，`work/Mods` 中已加载的 Mod 不受影响）。每个用户都需单独设置一次。
+
+复制后的目录结构示意：
+
+```
+原版根目录\
+├── d3dxSkinManage.exe       // 原版主程序 (保留, 可与新版并存)
+├── d3dxSkinManagePro.exe    // 新版主程序 (新增)
+├── home\                    // 原有用户数据 (直接沿用)
+├── resources\               // 原有 Mod 与图片资源 (直接沿用)
+├── local\                   // 7zip 与图标 (覆盖), configuration (沿用)
+└── plugins\                 // 原版插件 (新版不再读取, 可保留)
+```
+
+注意事项：
+
+- 两个程序共用同一份数据，可以并存，但**请勿同时运行**，以免索引与配置互相覆盖。
+- 原版的 `plugins` 目录、`resources/3dmigoto`（3DMigoto 版本压缩包）、`resources/preview_screen` 等新版不再使用，保留或删除均可；确认不再使用原版后可自行删除以释放空间。
+- 原版 `work` 目录中由原版解压的 3DMigoto 文件（`d3dx.ini`、`d3d11.dll` 等）会在 XXMI Launcher 安装 / 更新时被替换，若对 `d3dx.ini` 做过自定义修改，请提前备份。
+- 新版会在 `local/configuration` 和用户 `configuration` 中追加少量新字段（如 XXMI 目录、导入器），并新增 `home/<用户名>/classification_order.json` 记录分类顺序，原版会忽略这些内容。
+- 新版要求一个对象只属于一个分类，若原版中同一对象出现在多个分类里，首次登录时会只保留在排序靠前的分类中（会写回分类文件）。
+- 新版特有的数据（如单个 `.ini` 形式导入的 Mod）原版无法识别，回到原版使用时这些 Mod 可能无法加载。
+
 ## Mod 修复
 
 将修复脚本（`.py` 或 `.exe`）放入 `fixtool` 目录，然后：
