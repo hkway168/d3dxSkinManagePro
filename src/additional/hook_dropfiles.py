@@ -10,6 +10,7 @@ from constant import *
 
 # self
 from . import add_mod
+from . import add_mod_queue
 from . import add_preview
 
 
@@ -92,5 +93,13 @@ def bin_dropfiles_single(content):
 
 
 def bin_dropfiles_multiple(content):
-    core.window.messagebox.showerror(title='无法处理', message='无法一次性处理多个文件\n请将文件分别导入')
-    return
+    """拖入多个文件 / 文件夹: 全部为 Mod 时加入批量添加队列"""
+    unsupported = [x for x in content if not add_mod_queue.is_supported(x)]
+
+    if unsupported:
+        names = '\n'.join(os.path.basename(x) or x for x in unsupported[:10])
+        more = f'\n... 等 {len(unsupported)} 项' if len(unsupported) > 10 else ''
+        core.window.messagebox.showerror(title='无法处理', message=f'批量导入仅支持 Mod 压缩包 / ini / 文件夹\n以下项目不受支持:\n{names}{more}')
+        return
+
+    add_mod_queue.add_mods(content)

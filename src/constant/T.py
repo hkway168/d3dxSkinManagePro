@@ -60,10 +60,13 @@ TEXT_HELP = """d3dxSkinManagePro 使用帮助
 
 
 三、导入 Mod
-    ● 登录后将文件拖入主窗口即可导入，一次仅支持拖入一个文件。
+    ● 登录后将文件拖入主窗口即可导入。
     ● 支持 .zip / .rar / .7z 压缩包；拖入文件夹时会询问是否打包后导入。
     ● 也支持直接拖入单个 .ini 文件，无需先打包成压缩包；
       这类 Mod 不会被压缩，加载时会直接复制到工作目录的 Mods\\<SHA> 文件夹中。
+    ● 批量导入：一次拖入多个压缩包 / ini / 文件夹，会打开「添加 Mods - 处理队列」窗口。
+        左侧为任务列表，选中单个任务可单独编辑；选中多个任务（Ctrl / Shift 或「全选」）进入批量编辑，
+        修改的输入框会应用到所有选中的任务。「确定」导入选中的就绪任务，「取消」移除选中的任务。
     ● 导入时需填写：
         作用对象（必填）、模组名称（必填）、年龄分级（必填：G 大众级 / P 指导级 / R 成人级）
         模组作者、附加描述、类型标签（多个标签以空格分隔）为选填。
@@ -282,6 +285,12 @@ ANNOTATION_TAGS = """描述该 Mod 所包含的内容标签
 使用空格分隔多个 标签"""
 
 ANNOTATION_ADD_MOD_OK = "确认导入该 Mod"
+
+ANNOTATION_ADD_MODS_SHA_BATCH = """批量编辑模式
+对输入框的修改会同时应用到所有选中的任务"""
+ANNOTATION_ADD_MODS_SURE = "导入所有选中的任务\n未就绪或有错误的任务会被跳过"
+ANNOTATION_ADD_MODS_CANCEL = "取消所有选中的任务"
+ANNOTATION_ADD_MODS_SELECT_ALL = "选中队列中的所有任务\n选中多个任务时进入批量编辑模式"
 
 ANNOTATION_MODIFY_ITEM_OK = "修改数据并保存"
 ANNOTATION_MODIFY_ITEM_CANCEL = "什么都不做"
