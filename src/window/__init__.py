@@ -17,7 +17,6 @@ from .block import Block
 from .interface import Interface
 from .annotation_toplevel import AnnotationToplevel
 from . import dpi
-from . import icon
 
 from constant import *
 
@@ -154,11 +153,6 @@ def initial():
 
         except Exception as e:
             core.log.error(f"窗口图标设置异常 {e.__class__.__name__}: {e}", L.WINDOW)
-
-        # Tk 按固定的 16 / 32 像素挑选 ICO 帧, 高 DPI 下会被系统拉伸,
-        # 这里按标题栏实际需要的尺寸重设一次
-        if not icon.apply(mainwindow, _icon):
-            core.log.warn("按 DPI 重设窗口图标失败, 高缩放比下图标可能模糊", L.WINDOW)
 
     frame_title.pack(side="top", fill="x")
     frame_block.pack(side="top", fill="both", expand=True)
