@@ -79,7 +79,9 @@ class OCDCrop (object):
             ...
 
         self.label.bind("<Double-1>", self.bin_skin)
-        windnd.hook_dropfiles(self.label, func=self.bin_drop)
+        # 拖放回调中不能直接调用 tkinter, 否则会闪退, 需经子线程投递回主循环
+        windnd.hook_dropfiles(self.label, func=lambda items: threading.Thread(
+            None, lambda: self.window.after(0, self.bin_drop, list(items)), daemon=True).start())
         self.window.protocol('WM_DELETE_WINDOW', self.bin_close)
 
 
