@@ -4,6 +4,7 @@
 import os
 import json
 import shutil
+import fnmatch
 import threading
 
 import core
@@ -11,6 +12,26 @@ from constant import *
 
 
 UNCLASSIFIED = "未分类"
+
+
+def _is_pattern(name: str) -> bool:
+    """是否为分类参照中的通配规则 (原版 1.6 起支持, 例如 "*胡桃*")"""
+    return "*" in name or "?" in name
+
+
+def _match_patterns(object_: str, references: list[str]) -> bool:
+    """对象名称是否匹配参照列表中的任一通配规则"""
+    return any(_is_pattern(x) and fnmatch.fnmatch(object_, x) for x in references)
+
+
+def _match_reference(object_: str, references: list[str]) -> bool:
+    """对象名称是否属于参照列表 (精确名称或通配规则)"""
+    return object_ in references or _match_patterns(object_, references)
+
+
+def allow_multi_class() -> bool:
+    """是否允许一个对象同时属于多个分类 (与原版行为一致, 默认开启)"""
+    return core.env.configuration.pro_object_multi_class is not False
 
 
 class ModsManage (object):
@@ -77,7 +98,8 @@ class ModsManage (object):
 
                 self.__reference_classification[class_] = list(dict.fromkeys(object_list))
 
-            self.__dedupe_reference_classification()
+            if not allow_multi_class():
+                self.__dedupe_reference_classification()
 
 
     def __ordered_reference_classes(self) -> list[str]:
@@ -89,7 +111,11 @@ class ModsManage (object):
 
 
     def __dedupe_reference_classification(self):
-        """保证一个对象只属于一个分类: 按分类顺序保留首次出现, 其余分类中的重复项移除并写回文件"""
+        """单分类模式: 按分类顺序保留首次出现, 其余分类中的重复项仅在内存中忽略
+
+        不会写回分类文件, 原版 (或多分类模式下) 的数据保持不变;
+        只有用户在单分类模式下编辑某个分类时, 该分类文件才会按去重后的结果保存
+        """
         with self.__call_lock:
             seen = set()
             for class_ in self.__ordered_reference_classes():
@@ -98,10 +124,8 @@ class ModsManage (object):
                 seen.update(unique)
                 if len(unique) == len(objects): continue
 
-                core.log.warn(f"分类 \"{class_}\" 中的对象已存在于其他分类, 已移除: {[x for x in objects if x not in unique]}", L.MODULE_MODS_MANAGE)
+                core.log.info(f"单分类模式: 分类 \"{class_}\" 中已存在于其他分类的对象被忽略: {[x for x in objects if x not in unique]}", L.MODULE_MODS_MANAGE)
                 self.__reference_classification[class_] = unique
-                try: self.__write_reference_file(class_, unique)
-                except Exception as e: core.log.error(f"写入分类 \"{class_}\" 失败 {e.__class__} {e}", L.MODULE_MODS_MANAGE)
 
 
     def __write_reference_file(self, class_: str, objects: list[str]) -> None:
@@ -110,12 +134,35 @@ class ModsManage (object):
             file_object.write("".join(f"{x}\n" for x in objects))
 
 
-    def get_object_class(self, object_: str) -> str | None:
-        """返回对象所属的分类, 未归类返回 None"""
+    def get_object_classes(self, object_: str) -> list[str]:
+        """返回对象所属的全部分类 (按分类顺序), 未归类返回空列表
+
+        多分类模式: 精确名称或通配规则匹配的分类均返回 (与原版一致);
+        单分类模式: 最多返回一个, 精确名称优先, 其次匹配通配规则
+        """
         with self.__call_lock:
-            for class_, objects in self.__reference_classification.items():
-                if object_ in objects: return class_
-        return None
+            classes = self.__ordered_reference_classes()
+
+            if allow_multi_class():
+                return [x for x in classes if _match_reference(object_, self.__reference_classification[x])]
+
+            for class_ in classes:
+                if object_ in self.__reference_classification[class_]: return [class_]
+
+            for class_ in classes:
+                if _match_patterns(object_, self.__reference_classification[class_]): return [class_]
+
+        return []
+
+
+    def get_object_class(self, object_: str) -> str | None:
+        """返回对象所属的 (第一个) 分类, 未归类返回 None"""
+        classes = self.get_object_classes(object_)
+        return classes[0] if classes else None
+
+
+    def allow_multi_class(self) -> bool:
+        return allow_multi_class()
 
 
     def update_local_sha_list(self):
@@ -158,18 +205,10 @@ class ModsManage (object):
     def update_local_classification(self):
         core.log.debug("构建本地分类...", L.MODULE_MODS_MANAGE)
         with self.__call_lock:
-            _object_lst = set(self.__local_object_lst)
-
-            for class_, object_list in self.__reference_classification.items():
-                intersection = _object_lst & set(object_list)
-                if len(intersection) == 0: continue
-
-                self.__classification[class_] = list(intersection)
-                _object_lst -= intersection
-
-            if len(_object_lst) != 0:
-                if "未分类" not in self.__classification: self.__classification["未分类"] = []
-                self.__classification["未分类"] += list(_object_lst)
+            # 多分类模式下对象可出现在多个分类中; 单分类模式下精确名称优先, 其次匹配通配规则
+            for object_ in self.__local_object_lst:
+                for class_ in self.get_object_classes(object_) or [UNCLASSIFIED]:
+                    self.__classification.setdefault(class_, []).append(object_)
 
         # 对 Mod 列表排序 (依据 Mod 名称)
         for _, lst in self.__local_object_sha_lst.items(): lst.sort(key=_list_sort_for_item_name)
@@ -263,7 +302,7 @@ class ModsManage (object):
         if class_ == UNCLASSIFIED:
             return sorted(local)
 
-        result = list(dict.fromkeys(self.__reference_classification.get(class_, [])))
+        result = [x for x in dict.fromkeys(self.__reference_classification.get(class_, [])) if not _is_pattern(x)]
         result += sorted(set(local) - set(result))
 
         if not core.env.configuration.show_empty_objects:
@@ -275,7 +314,8 @@ class ModsManage (object):
     def set_reference_object_list(self, class_: str, objects: list[str]) -> None:
         """保存分类参照中的对象列表 (仅调整顺序时无需完整刷新)
 
-        一个对象只能属于一个分类, 列表中的对象会从其他分类中移除
+        单分类模式下一个对象只能属于一个分类, 列表中的对象会从其他分类中移除;
+        多分类模式下 (与原版一致) 不影响其他分类
         """
         if not class_ or class_ == UNCLASSIFIED: return
 
@@ -283,6 +323,7 @@ class ModsManage (object):
         with self.__call_lock:
             _objects = set(objects)
             for other, other_objects in self.__reference_classification.items():
+                if allow_multi_class(): break
                 if other == class_ or not (_objects & set(other_objects)): continue
                 remain = [x for x in other_objects if x not in _objects]
                 self.__write_reference_file(other, remain)
@@ -424,12 +465,13 @@ class ModsManage (object):
     def get_loaded_objects(self, class_: str | None = None) -> list[str]:
         """返回已加载 Mod 的对象列表; 指定 class_ 时仅返回该分类下的对象
 
-        对象所属分类以分类参照为准, 不在任何分类参照中的对象视为 "未分类"
+        对象所属分类以分类参照为准, 不在任何分类参照中的对象视为 "未分类";
+        多分类模式下, 对象属于其中任一分类即会被包含
         """
         with self.__call_lock:
             objects = list(self.__table_loads)
             if class_ is None: return objects
-            return [x for x in objects if (self.get_object_class(x) or UNCLASSIFIED) == class_]
+            return [x for x in objects if class_ in (self.get_object_classes(x) or [UNCLASSIFIED])]
 
 
     def unload_objects(self, objects: list[str]) -> int:

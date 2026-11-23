@@ -6,6 +6,7 @@
 │       ├── modsIndex               // Mod 索引
 │       ├── work                    // 3DMigoto 工作目录 (XXMI Launcher 导入器目录)
 │       │   └── Mods                    // 已加载的 Mod
+│       ├── thumbnail               // c (可选, 与 resources/thumbnail 叠加, 同名优先)
 │       ├── configuration           // 用户配置
 │       ├── description.txt         // 用户描述
 │       └── picture.png             // 用户头像

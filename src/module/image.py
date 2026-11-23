@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import threading
 
 import PIL.Image
 import PIL.ImageTk
@@ -81,6 +82,8 @@ class ImageTkThumbnailGroup(object):
     """
     def __init__(self, width: int = 16, height: int = 16):
         self.__table = {}
+        self.__pending = None
+        self.__reload_lock = threading.Lock()
         self.setSize(width, height)
         self.__none = PIL.ImageTk.PhotoImage(PIL.Image.new('RGBA', (width, height), "#00000000"))
 
@@ -132,7 +135,7 @@ class ImageTkThumbnailGroup(object):
             raise TypeError("The name_ type is not str.")
 
         img = image_canvas(image_, self._width, self._height, tkimg=True)
-        self.__table[name_] = img
+        (self.__pending if self.__pending is not None else self.__table)[name_] = img
 
 
     def add_image_from_dirs(self, path: str) -> None:
@@ -151,7 +154,7 @@ class ImageTkThumbnailGroup(object):
             except Exception: ...
 
 
-    def add_image_from_redirection_config_file(self, path: str) -> None:
+    def add_image_from_redirection_config_file(self, path: str, notify: bool = True) -> None:
         if not isinstance(path, str):
             core.log.error(f"参数类型错误", L.MODULE_IMAGE)
             raise TypeError("The path type is not str.")
@@ -166,7 +169,7 @@ class ImageTkThumbnailGroup(object):
                 ...
 
             core.log.info("头像缩略图加载完成", L.MODULE_IMAGE)
-            core.construct.event.set_event(E.THUMBNAIL_LOADED)
+            if notify: core.construct.event.set_event(E.THUMBNAIL_LOADED)
             return
 
         with open(path, 'r', encoding='utf-8') as fileobject: contentlst = fileobject.readlines()
@@ -199,6 +202,28 @@ class ImageTkThumbnailGroup(object):
                     ...
 
         core.log.info("头像缩略图加载完成", L.MODULE_IMAGE)
+        if notify: core.construct.event.set_event(E.THUMBNAIL_LOADED)
+
+
+    def reload(self, paths: list[str]) -> None:
+        """清空并按顺序重新加载多个缩略图目录 (重定向配置文件路径)
+
+        后加载的同名缩略图会覆盖先加载的; 全部加载完成后再整体替换, 避免列表短暂丢失缩略图
+        不存在的目录会被跳过
+        """
+        with self.__reload_lock:
+            self.__pending = {}
+            try:
+                for path in paths:
+                    if not os.path.isdir(os.path.dirname(path)): continue
+                    try: self.add_image_from_redirection_config_file(path, notify=False)
+                    except Exception as e: core.log.error(f"加载缩略图 {path} 失败 {e.__class__}: {e}", L.MODULE_IMAGE)
+
+                self.__table = self.__pending
+
+            finally:
+                self.__pending = None
+
         core.construct.event.set_event(E.THUMBNAIL_LOADED)
 
 
@@ -206,7 +231,7 @@ class ImageTkThumbnailGroup(object):
         if name in self.__table:
             return self.__table[name]
 
-        algorithm = core.env.configuration.thumbnail_approximate_algorithm
+        algorithm = core.env.configuration.pro_thumbnail_approximate_algorithm
         if algorithm not in K.APPROXIMATE.ALL:
             algorithm = K.APPROXIMATE.KEY_IN_ONLY
 

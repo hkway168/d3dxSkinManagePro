@@ -29,7 +29,10 @@ TEXT_HELP = """d3dxSkinManagePro 使用帮助
     ● 对象列表
         左键：查看该对象的全部 Mod
         右键：添加对象 / 管理子对象（排序、移出分类）
-        一个对象只能属于一个分类；添加已在其他分类中的对象时，会询问是否移动过来。
+        默认一个对象可以同时属于多个分类（与原版一致）；
+        在「环境设置」中关闭「对象可属于多个分类」后，一个对象只能属于一个分类，
+        添加已在其他分类中的对象时，会询问是否移动过来。
+        分类中可以使用 * / ? 通配规则（如 *胡桃*）批量归类对象。
         [a/b] 表示：本地已有 Mod 数 / 索引中的 Mod 总数。
         「启用 Mod」列显示该对象当前加载的 Mod。
 
@@ -93,6 +96,7 @@ TEXT_HELP = """d3dxSkinManagePro 使用帮助
         描述提示词数量：控制鼠标悬停提示的详细程度
         头像匹配算法：控制列表缩略图与 resources\\thumbnail 下图片的配对方式
         显示空对象：开启后本地没有任何 Mod 的对象也会显示在对象列表中
+        对象可属于多个分类：默认开启（与原版一致），关闭后一个对象只归入排序最靠前的分类
 
     ● XXMI Launcher
         本程序不再内置 3DMigoto，改为对接 XXMI Launcher。
@@ -132,6 +136,7 @@ TEXT_HELP = """d3dxSkinManagePro 使用帮助
         classification\\       分类配置
         modsIndex\\            Mod 索引（self-index.json）
         work\\                 3DMigoto 工作目录（由 XXMI Launcher 部署，Mods 解压于 work\\Mods）
+        thumbnail\\            用户级缩略图（可选，与 resources\\thumbnail 叠加，同名时优先）
         description.txt       用户描述
         picture.png/jpg       用户头像
     resources\\
@@ -144,7 +149,9 @@ TEXT_HELP = """d3dxSkinManagePro 使用帮助
 
 八、常见问题
     ● 拖入文件没有反应？
-        请确认已登录，且一次只拖入一个文件。
+        请确认已登录（未登录时会弹出提示）。
+        可一次拖入多个 Mod（压缩包 / ini / 文件夹），会打开批量导入队列；
+        预览图一次只能拖入一张，且不能与 Mod 混在一起拖入，否则会提示「不受支持」。
     ● Mod 加载后游戏内不生效？
         请确认已设置 XXMI Launcher 目录与正确的导入器，
         且导入器状态显示「已就绪」，并通过「启动游戏」启动。
@@ -225,6 +232,14 @@ ANNOTATION_SHOW_EMPTY_OBJECTS = """显示空对象
 关闭时分类后的数量也只统计有 Mod 的对象
 
 默认关闭，该项设置立即生效"""
+
+ANNOTATION_OBJECT_MULTI_CLASS = """对象可属于多个分类
+开启：同一对象可同时出现在多个分类中（与原版 d3dxSkinManage 一致）
+关闭：一个对象只归入排序最靠前的分类，
+      添加已在其他分类中的对象时会询问是否移动
+
+切换不会修改分类文件，只有在关闭状态下编辑分类时才会按单分类规则保存
+默认开启，该项设置立即生效"""
 
 ANNOTATION_XXMI_ROOT = """XXMI Launcher 所在目录
 3DMigoto 本体由 XXMI Launcher 负责下载与更新

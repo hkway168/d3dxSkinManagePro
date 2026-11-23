@@ -62,6 +62,8 @@ def _unclassified_objects() -> list[str]:
         classified |= set(core.module.mods_manage.get_reference_object_list(classname))
 
     objects = [x for x in dict.fromkeys(core.module.mods_index.get_object_list()) if x and x not in classified]
+    # 被通配规则 (如 "*胡桃*") 匹配的对象同样视为已分类
+    objects = [x for x in objects if core.module.mods_manage.get_object_class(x) is None]
     local = sorted(x for x in objects if core.module.mods_manage.get_object_sha_list(x))
     others = sorted(x for x in objects if x not in set(local))
     return local + others
@@ -475,9 +477,9 @@ class AddObject (_Dialog):
             self.Label_errormsg.config(text="该对象已在分类中")
             return
 
-        # 一个对象只能属于一个分类, 已在其他分类中时询问是否移动
+        # 单分类模式下一个对象只能属于一个分类, 已在其他分类中时询问是否移动
         other = core.module.mods_manage.get_object_class(object_)
-        if other is not None and other != self.classname:
+        if not core.module.mods_manage.allow_multi_class() and other is not None and other != self.classname:
             message = f'对象 "{object_}" 已在分类 "{other}" 中。\n\n一个对象只能属于一个分类，是否将其移动到分类 "{self.classname}"？'
             if not _askyesno('移动对象', message, parent=self.windows): return
 

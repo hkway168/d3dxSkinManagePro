@@ -30,6 +30,9 @@ class __directory (Directory):
 class file (static):
     configuration: str = ...
     classification_order: str = ...
+    # 用户级缩略图 home/<用户名>/thumbnail (原版 1.6 起使用), 与 resources/thumbnail 叠加, 同名时优先
+    # 放在 file 中而非 directory 中, 避免访问时自动创建空目录
+    redirection: str = ...
 
 
 directory = __directory()
@@ -56,6 +59,7 @@ def login(__username: str):
 
     file.configuration = __(env.base.home, __username, "configuration")
     file.classification_order = __(env.base.home, __username, "classification_order.json")
+    file.redirection = __(env.base.home, __username, "thumbnail", "_redirection.ini")
 
     try: configuration = libs.econfiguration.Configuration(file.configuration)
     except Exception: configuration = libs.econfiguration.Configuration()
@@ -76,3 +80,4 @@ def logout():
 
     file.configuration = ...
     file.classification_order = ...
+    file.redirection = ...

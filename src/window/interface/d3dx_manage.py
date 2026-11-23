@@ -94,12 +94,29 @@ class D3dxManage(object):
             self.frame_show_empty_objects,
             variable=self.value_show_empty_objects,
             bootstyle="round-toggle",
+            takefocus=False,
             command=self.bin_set_show_empty_objects
         )
 
         self.frame_show_empty_objects.pack(side="top", fill="x", padx=10, pady=(0, 10))
         self.label_show_empty_objects.pack(side="left", padx=(0, 5))
         self.checkbutton_show_empty_objects.pack(side="right")
+
+        self.value_object_multi_class = ttkbootstrap.BooleanVar(value=core.env.configuration.pro_object_multi_class is not False)
+
+        self.frame_object_multi_class = ttkbootstrap.Frame(self.labelframe_global)
+        self.label_object_multi_class = ttkbootstrap.Label(self.frame_object_multi_class, text="对象可属于多个分类")
+        self.checkbutton_object_multi_class = ttkbootstrap.Checkbutton(
+            self.frame_object_multi_class,
+            variable=self.value_object_multi_class,
+            bootstyle="round-toggle",
+            takefocus=False,
+            command=self.bin_set_object_multi_class
+        )
+
+        self.frame_object_multi_class.pack(side="top", fill="x", padx=10, pady=(0, 10))
+        self.label_object_multi_class.pack(side="left", padx=(0, 5))
+        self.checkbutton_object_multi_class.pack(side="right")
 
 
         self.labelframe_xxmi = ttkbootstrap.LabelFrame(self.labelframe_userenv, text="XXMI Launcher")
@@ -154,6 +171,7 @@ class D3dxManage(object):
     def initial(self):
         # 配置修正在界面创建之后执行, 这里重新同步一次
         self.value_show_empty_objects.set(bool(core.env.configuration.show_empty_objects))
+        self.value_object_multi_class.set(core.env.configuration.pro_object_multi_class is not False)
         self.sbin_update_thumbnail_approximate()
 
         _alt_set = core.window.annotation_toplevel.register
@@ -165,6 +183,8 @@ class D3dxManage(object):
         _alt_set(self.label_thumbnail_approximate, T.ANNOTATION_THUMBNAIL_APPROXIMATE, 2)
         _alt_set(self.checkbutton_show_empty_objects, T.ANNOTATION_SHOW_EMPTY_OBJECTS, 2)
         _alt_set(self.label_show_empty_objects, T.ANNOTATION_SHOW_EMPTY_OBJECTS, 2)
+        _alt_set(self.checkbutton_object_multi_class, T.ANNOTATION_OBJECT_MULTI_CLASS, 2)
+        _alt_set(self.label_object_multi_class, T.ANNOTATION_OBJECT_MULTI_CLASS, 2)
 
         _alt_set(self.entry_xxmi, T.ANNOTATION_XXMI_ROOT, 2)
         _alt_set(self.button_choice_xxmi, T.ANNOTATION_XXMI_ROOT, 2)
@@ -187,7 +207,7 @@ class D3dxManage(object):
         core.log.info("更新 d3dx 环境设置信息...")
 
         self.combobox_theme.config(values=core.window.style_theme_names)
-        self.combobox_theme.set(core.env.configuration.style_theme)
+        self.combobox_theme.set(core.env.configuration.pro_style_theme)
 
         for key, value in LOG_LEVEL.items():
             if core.env.configuration.log_level == value:
@@ -201,6 +221,7 @@ class D3dxManage(object):
 
         self.sbin_update_thumbnail_approximate()
         self.value_show_empty_objects.set(bool(core.env.configuration.show_empty_objects))
+        self.value_object_multi_class.set(core.env.configuration.pro_object_multi_class is not False)
 
         _GamePath = core.userenv.configuration.GamePath
         if _GamePath is None: _GamePath = "< 未设置 >"
@@ -219,7 +240,7 @@ class D3dxManage(object):
 
 
     def sbin_update_thumbnail_approximate(self):
-        current = core.env.configuration.thumbnail_approximate_algorithm
+        current = core.env.configuration.pro_thumbnail_approximate_algorithm
         for key, value in THUMBNAIL_APPROXIMATE.items():
             if current == value:
                 self.combobox_thumbnail_approximate.set(key)
@@ -302,7 +323,7 @@ class D3dxManage(object):
             return
         
         core.window.style.theme_use(value)
-        core.env.configuration.style_theme = value
+        core.env.configuration.pro_style_theme = value
         core.window.apply_style()
 
         # 主题色变化后需要重新应用选择列表的状态配色
@@ -334,7 +355,7 @@ class D3dxManage(object):
         if value is None:
             return
 
-        core.env.configuration.thumbnail_approximate_algorithm = value
+        core.env.configuration.pro_thumbnail_approximate_algorithm = value
         # 匹配结果变化后需要重新渲染分类与对象列表的缩略图
         core.construct.event.set_event(E.MODS_MANAGE_CACHE_REFRESHED)
 
@@ -342,6 +363,13 @@ class D3dxManage(object):
     def bin_set_show_empty_objects(self, *_):
         core.env.configuration.show_empty_objects = bool(self.value_show_empty_objects.get())
         core.construct.event.set_event(E.MODS_MANAGE_CACHE_REFRESHED)
+
+
+    def bin_set_object_multi_class(self, *_):
+        core.env.configuration.pro_object_multi_class = bool(self.value_object_multi_class.get())
+        # 分类归属规则变化, 需要重新读取分类参照并重建分类列表 (不会改写分类文件)
+        if core.userenv.user_name is not Ellipsis:
+            core.sync.addtask("刷新模组管理", core.module.mods_manage.refresh)
 
 
     def bin_selection_clear(self, *args, **kwds):

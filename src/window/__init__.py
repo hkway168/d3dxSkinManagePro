@@ -128,7 +128,7 @@ def exec_in_main_thread(callobject, *args, **kwds):
 def initial():
     core.log.info("初始化主窗口...", L.WINDOW)
 
-    style.theme_use(core.env.configuration.style_theme)
+    style.theme_use(core.env.configuration.pro_style_theme)
     apply_style()
 
     mainwindow.title(f"{core.env.PROJECT} v{core.env.VERSION}")
