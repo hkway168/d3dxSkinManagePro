@@ -16,6 +16,7 @@ from window.popup_menu import PopupMenu
 
 from . import unload_mods
 from . import fix_mod_script
+from . import set_thumbnail
 
 
 illegalchat = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
@@ -394,6 +395,7 @@ class ManageClassification (_ManageList):
 
         os.rename(_classification_path(old), _classification_path(new))
         self.save_order([new if x == old else x for x in self.order])
+        set_thumbnail.copy_thumbnail(old, new)
         _refresh_in_background()
 
     def delete_item(self, name):
@@ -568,6 +570,7 @@ class ClassificationContextMenu (_ContextMenu):
         preset = iid if iid and iid != UNCLASSIFIED else None
         self.menu.add_command(label='添加分类', command=add_classification)
         self.menu.add_command(label='管理分类', command=lambda: manage_classification(preset))
+        set_thumbnail.add_to_menu(self.menu, iid or None)
         unload_mods.add_to_menu(self.menu, iid or None)
         _add_fix_all(self.menu)
 
@@ -589,6 +592,7 @@ class ObjectContextMenu (_ContextMenu):
                 items=[(x, lambda x=x: move_object_to_class(iid, x)) for x in targets],
             )
 
+        set_thumbnail.add_to_menu(self.menu, iid or None)
         unload_mods.add_to_menu(self.menu, classname)
         _add_fix_all(self.menu)
 

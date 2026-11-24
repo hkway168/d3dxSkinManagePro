@@ -37,9 +37,9 @@ def when_entering_mainpool():
 
 def reload_thumbnail():
     """重新加载缩略图: resources/thumbnail (全局) + home/<用户名>/thumbnail (用户级, 同名时优先)"""
-    paths = [core.env.file.resources.redirection]
-    if core.userenv.user_name is not Ellipsis and isinstance(core.userenv.file.redirection, str):
-        paths.append(core.userenv.file.redirection)
+    paths = [core.env.directory.resources.thumbnail]
+    if core.userenv.user_name is not Ellipsis and isinstance(core.userenv.file.thumbnail, str):
+        paths.append(core.userenv.file.thumbnail)
 
     core.construct.taskpool.newtask(core.window.treeview_thumbnail.reload, (paths, ))
 

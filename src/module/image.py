@@ -13,6 +13,10 @@ import core
 from constant import *
 
 
+# 缩略图目录中会被加载的图片格式
+THUMBNAIL_SUFFIXES = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp')
+
+
 def image_resize(image_: Union[PIL.Image.Image, str], width: int, height: int, tkimg: bool = False) -> PIL.Image.Image:
     """调整图片大小, 保持原图片比例"""
     if isinstance(image_, PIL.Image.Image): picture = image_
@@ -139,74 +143,40 @@ class ImageTkThumbnailGroup(object):
 
 
     def add_image_from_dirs(self, path: str) -> None:
+        """加载目录及其所有子目录下的图片, 文件名 (去掉后缀, 不含子目录路径) 即缩略图名称
+
+        同一目录树中出现同名图片时: 层级越浅越优先, 同一层级按相对路径字母序靠前者优先
+        """
         if not isinstance(path, str):
             raise TypeError("The path type is not str.")
 
         if not os.path.isdir(path):
-            raise FileNotFoundError("FileNotFoundError ac .")
+            raise FileNotFoundError(f"Directory not found: {path}")
 
-        filenamelst = os.listdir(path)
+        candidates = []
+        for dirpath, dirnames, filenames in os.walk(path):
+            # 跳过隐藏目录, 并保证遍历顺序稳定
+            dirnames[:] = sorted(x for x in dirnames if not x.startswith('.'))
+            relative = os.path.relpath(dirpath, path)
+            depth = 0 if relative == os.curdir else relative.count(os.sep) + 1
 
-        for filename in filenamelst:
-            filepath = os.path.join(path, filename)
-            if not os.path.isfile(filepath): continue
-            try: self.add_image(filepath)
-            except Exception: ...
+            for filename in filenames:
+                stem, suffix = os.path.splitext(filename)
+                if not stem or suffix.lower() not in THUMBNAIL_SUFFIXES: continue
+                filepath = os.path.join(dirpath, filename)
+                candidates.append((depth, os.path.relpath(filepath, path).lower(), stem, filepath))
 
+        selected = {}
+        for _, _, stem, filepath in sorted(candidates):
+            selected.setdefault(stem, filepath)
 
-    def add_image_from_redirection_config_file(self, path: str, notify: bool = True) -> None:
-        if not isinstance(path, str):
-            core.log.error(f"参数类型错误", L.MODULE_IMAGE)
-            raise TypeError("The path type is not str.")
-
-        # 重定向配置文件是可选的, 不存在时仅加载缩略图目录下的图片
-        if not os.path.isfile(path):
-            core.log.info(f"重定向配置文件 {path} 不存在, 跳过重定向加载", L.MODULE_IMAGE)
-            try:
-                self.add_image_from_dirs(os.path.dirname(path))
-
-            except Exception:
-                ...
-
-            core.log.info("头像缩略图加载完成", L.MODULE_IMAGE)
-            if notify: core.construct.event.set_event(E.THUMBNAIL_LOADED)
-            return
-
-        with open(path, 'r', encoding='utf-8') as fileobject: contentlst = fileobject.readlines()
-        statementlst = [x.strip() for x in contentlst if x.strip()]
-        filedirname = os.path.dirname(path)
-
-        for statement in statementlst:
-            if '=' in statement:
-                try:
-                    if statement[0] in [';', '/', '\\']: continue
-                    index = statement.find('=')
-                    name = statement[:index].strip()
-                    filename = statement[index + 1:].strip()
-                    filepath = os.path.join(filedirname, filename)
-
-                    core.log.info(f"头像缩略图加载指令 {statement}", L.MODULE_IMAGE)
-                    self.add_image(filepath, name)
-
-                except:
-                    ...
-
-            elif len(statement) >= 7 and statement[:4] == '[*] ' and statement[-2:] == '\*':
-                dirname = statement[4:-2]
-                dirpath = os.path.join(filedirname, dirname)
-                try:
-                    core.log.info(f"头像缩略图加载指令 {statement}", L.MODULE_IMAGE)
-                    self.add_image_from_dirs(dirpath)
-
-                except Exception:
-                    ...
-
-        core.log.info("头像缩略图加载完成", L.MODULE_IMAGE)
-        if notify: core.construct.event.set_event(E.THUMBNAIL_LOADED)
+        for stem, filepath in selected.items():
+            try: self.add_image(filepath, stem)
+            except Exception as e: core.log.warning(f"加载缩略图 {filepath} 失败 {e.__class__}: {e}", L.MODULE_IMAGE)
 
 
     def reload(self, paths: list[str]) -> None:
-        """清空并按顺序重新加载多个缩略图目录 (重定向配置文件路径)
+        """清空并按顺序重新加载多个缩略图目录
 
         后加载的同名缩略图会覆盖先加载的; 全部加载完成后再整体替换, 避免列表短暂丢失缩略图
         不存在的目录会被跳过
@@ -215,9 +185,11 @@ class ImageTkThumbnailGroup(object):
             self.__pending = {}
             try:
                 for path in paths:
-                    if not os.path.isdir(os.path.dirname(path)): continue
-                    try: self.add_image_from_redirection_config_file(path, notify=False)
+                    if not os.path.isdir(path): continue
+                    try: self.add_image_from_dirs(path)
                     except Exception as e: core.log.error(f"加载缩略图 {path} 失败 {e.__class__}: {e}", L.MODULE_IMAGE)
+
+                core.log.info("缩略图加载完成", L.MODULE_IMAGE)
 
                 self.__table = self.__pending
 

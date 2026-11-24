@@ -45,10 +45,6 @@ class directory (Directory):
 
 
 class file (static):
-    class resources (static):
-        redirection = __(directory.resources.thumbnail, "_redirection.ini")
-
-
     class local (static):
         t7z = __(base.local, "7zip", "7z.exe")
         iconbitmap = __(base.local, "iconbitmap.ico")
