@@ -19,6 +19,7 @@ from window.popup_menu import PopupMenu
 
 from . import fix_mod_script
 from . import modify_key_swap
+from . import choices_sort
 
 
 class selfstatus (object):
@@ -446,6 +447,7 @@ def _apply_cache_to_source(old_SHA: str):
 
         was_loaded = core.module.mods_manage.is_loaded_sha(old_SHA)
         backup_path = _migrate_sha(old_SHA, new_SHA, object_, temp_file, was_loaded)
+        choices_sort.migrate_sha(old_SHA, new_SHA)
 
     finally:
         try:
@@ -548,7 +550,7 @@ def _refresh_preview_sha(old_SHA: str, new_SHA: str):
 
 
 class ChoicesContextMenu (object):
-    """Mod 选择列表右键菜单: 修改 Mod 信息 (需右键选中具体 Mod)"""
+    """Mod 选择列表右键菜单: 修改 Mod 信息 (需右键选中具体 Mod) 与排序设置"""
 
     def __init__(self, treeview):
         self.treeview = treeview
@@ -564,10 +566,14 @@ class ChoicesContextMenu (object):
         iid = self.treeview.identify_row(event.y)
         is_mod = bool(iid) and core.module.mods_index.get_item(iid) is not None
 
-        # 仅在右键具体 Mod 时出现菜单, 空白处 / "卸载该对象" 不显示
-        if not is_mod: return
-
         self.menu.clear()
+
+        # 空白处 / "卸载该对象" 只显示排序菜单 (需要已选中对象)
+        if not is_mod:
+            if core.window.interface.mods_manage.sbin_get_select_objects() is None: return
+            choices_sort.add_to_menu(self.menu, separator=False)
+            self.menu.popup(event.x_root, event.y_root)
+            return
 
         # 右键时同步选中该 Mod, 便于确认操作对象
         self.treeview.selection_set(iid)
@@ -585,6 +591,7 @@ class ChoicesContextMenu (object):
         self.menu.add_command(label='查看原始文件', command=lambda: open_in_explorer(source_path), enabled=source_path is not None)
         self.menu.add_command(label='应用到原始文件', command=lambda: apply_cache_to_source(iid), enabled=cache_path is not None and source_path is not None)
         self.menu.add_command(label='使用脚本修复Mod', command=lambda: fix_mod_script.fix_with_script(iid), enabled=cache_path is not None)
+        choices_sort.add_to_menu(self.menu, [iid])
 
         self.menu.popup(event.x_root, event.y_root)
 

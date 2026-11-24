@@ -389,17 +389,23 @@ class ModsManage(object):
             to_list.append(SHA)
             to_data[SHA] = item
 
+        # 按右键菜单中选择的排序规则排序 (失败时保持默认顺序)
+        from additional import choices_sort
+        try: to_list = choices_sort.sort_sha_list(to_list)
+        except Exception as e: core.log.error(f"选择列表排序失败 {e.__class__} {e}", L.WINDOS_MODS_MANAGE)
+
         # 剔除已经不存在的 Mod
         nonexistent = set(exist_mods_list) - set(to_data)
         self.treeview_choices.delete(*nonexistent)
 
-        for index, SHA in enumerate(to_data):
-            item = core.module.mods_index.get_item(SHA)
+        for index, SHA in enumerate(to_list):
+            item = to_data[SHA]
             name = item["name"]
             grading = item["grading"]
             a = item.get(K.INDEX.AUTHOR, "-")
             a = "-" if not a else a
             atags = " ".join(item.get("tags", []))
+            prefix = choices_sort.display_prefix(SHA)
 
             # 状态标签决定名称的显示颜色
             state = self.sbin_get_choices_state_tag(SHA)
@@ -408,14 +414,16 @@ class ModsManage(object):
             if SHA in exist_mods_list:
                 self.treeview_choices.item(
                     SHA,
-                    text=f"[{grading}] {name}\n{a} {atags}", 
+                    text=f"{prefix}[{grading}] {name}\n{a} {atags}", 
                     tags=item_tags
                 )
+                # 已存在的项也要移动到新位置, 否则切换排序后顺序不会变化
+                self.treeview_choices.move(SHA, "", index)
 
             else:
                 self.treeview_choices.insert(
                     "", index, SHA,
-                    text=f"[{grading}] {name}\n{a} {atags}", 
+                    text=f"{prefix}[{grading}] {name}\n{a} {atags}", 
                     tags=item_tags
                 )
 
@@ -446,8 +454,11 @@ class ModsManage(object):
             core.module.mods_manage.unload(object_)
 
         else:
+            from additional import choices_sort
+            name = name.removeprefix(choices_sort.PIN_MARK)
             self.treeview_objects.item(self.treeview_objects.focus(), value=(name, ))
             core.module.mods_manage.load(SHA)
+            choices_sort.record_recent(SHA)
 
 
     def bin_refresh(self, *args):
