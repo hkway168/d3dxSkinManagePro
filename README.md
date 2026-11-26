@@ -14,7 +14,7 @@
 - **对接 XXMI Launcher**：不再内置 3DMigoto 版本压缩包，改为将 [XXMI Launcher](https://github.com/SpectrumQT/XXMI-Launcher) 对应导入器（GIMI / SRMI / ZZMI / WWMI / HIMI / EFMI）的目录指向当前用户的 `work` 目录，由其负责 3DMigoto 的下载、更新与注入启动。
 - **高 DPI 适配**：适配 4K 等高缩放比例屏幕，行高、列宽、缩略图按系统 DPI 自动换算。
 - **分类管理增强**：分类支持添加、置顶 / 上移 / 下移 / 置底、重命名、删除；对象支持排序、移出分类，「未分类」中的对象可右键直接移动到分类；可选择对象是否允许同时属于多个分类（默认允许，与原版一致）。
-- **分类 / 对象缩略图**：分类或对象右键「设置缩略图…」选择本地图片，保存到 `home/<用户名>/thumbnail/<名称>.png`（超过 256 像素自动等比缩小）；重命名分类时自动复制缩略图。缩略图目录支持子目录整理，文件名即名称。
+- **分类 / 对象缩略图**：分类或对象右键「设置缩略图…」选择本地图片，或「使用剪贴板图片设置缩略图」，保存到 `resources/thumbnail/<用户名>/<名称>.png`（超过 256 像素自动等比缩小）；重命名分类时自动复制缩略图。缩略图目录支持子目录整理，文件名即名称。
 - **批量导入**：一次拖入多个压缩包 / `.ini` / 文件夹时打开处理队列，可单独或批量编辑 Mod 信息后一并导入。
 - **Mod 状态着色**：选择列表中正在使用的 Mod 显示为绿色，仅存在解压缓存的 Mod 显示为黄色。
 - **Mod 列表排序**：选择列表右键「排序方式」可按默认（分级 → 名称）/ 名称 / 添加时间 / 文件大小 / 最近使用排序，支持正序 / 倒序；「优先显示」可让置顶的 Mod、正在使用的 Mod、有解压缓存的 Mod 排在最前；Mod 右键可置顶（名称前显示 `★`）。设置按用户保存在 `home/<用户名>/choices_sort.json`。
@@ -110,7 +110,7 @@ buildtools\build.bat [onedir] [nopause]
 
 1. **备份**：先备份原版根目录下的 `home` 与 `resources` 文件夹（以防万一）。
 2. **复制**：从 [Releases](https://github.com/hkway168/d3dxSkinManagePro/releases) 下载 `d3dxSkinManagePro-vX.X.X-win64.zip`，将压缩包内 `d3dxSkinManagePro` 文件夹中的**全部内容**（`d3dxSkinManagePro.exe` 与 `local` 文件夹）复制到原版根目录（即 `d3dxSkinManage.exe` 所在目录），提示同名文件时选择覆盖（仅为 `local/7zip` 与 `local/iconbitmap.ico`）。
-3. **启动**：双击 `d3dxSkinManagePro.exe`，登录界面会列出原有的全部用户，登录后分类（含 v1.6 的 `*` / `?` 通配规则）、对象、Mod、预览图、缩略图（含 v1.6 的用户级 `home/<用户名>/thumbnail`）与已加载状态均与原版一致。
+3. **启动**：双击 `d3dxSkinManagePro.exe`，登录界面会列出原有的全部用户，登录后分类（含 v1.6 的 `*` / `?` 通配规则）、对象、Mod、预览图与已加载状态均与原版一致（缩略图见下方注意事项）。
 4. **对接 XXMI Launcher**：本程序不再使用原版的 3DMigoto 版本选择，登录后进入「环境设置」，按 [快速上手](#快速上手) 第 2、3 步选择 XXMI 目录与模组导入器，再在 XXMI Launcher 中安装 / 更新 3DMigoto（会部署到该用户原有的 `work` 目录，`work/Mods` 中已加载的 Mod 不受影响）。每个用户都需单独设置一次。
 
 复制后的目录结构示意：
@@ -132,7 +132,8 @@ buildtools\build.bat [onedir] [nopause]
 - 原版的 `plugins` 目录、`update.exe`、`resources/3dmigoto`（3DMigoto 版本压缩包）、`resources/preview_screen` 等新版不再使用，保留或删除均可；确认不再使用原版后可自行删除以释放空间。
 - 原版 `work` 目录中由原版解压的 3DMigoto 文件（`d3dx.ini`、`d3d11.dll` 等）会在 XXMI Launcher 安装 / 更新时被替换，若对 `d3dx.ini` 做过自定义修改，请提前备份。
 - 新版的主题与缩略图匹配算法使用独立的配置项，不会修改原版的设置；原版 v1.6 的模糊相似度匹配在新版中对应为「图片名包含于对象名」等包含匹配，可在「环境设置」中调整。
-- 新版不再支持缩略图目录中的 `_redirection.ini`，改为扫描 `resources/thumbnail` 与 `home/<用户名>/thumbnail` 目录（含子目录）下的全部图片，文件名即名称；依赖 `_redirection.ini` 做「名称=文件名」映射的缩略图需将图片按分类 / 对象名称重命名。
+- 新版不再支持缩略图目录中的 `_redirection.ini`，改为登录后扫描 `resources/thumbnail/<用户名>` 目录（含子目录）下的全部图片，文件名即名称；依赖 `_redirection.ini` 做「名称=文件名」映射的缩略图需将图片按分类 / 对象名称重命名。
+- 新版不再读取用户级缩略图目录 `home/<用户名>/thumbnail`，登录时会将其中的图片**移动**到 `resources/thumbnail/<用户名>`（保留子目录结构，已有同名图片时不移动并提示）。移动后原版 v1.6 将无法再显示这些用户级缩略图，如仍需使用原版请提前备份。
 - 新版会在 `local/configuration` 和用户 `configuration` 中追加少量新字段（如 XXMI 目录、导入器），并新增 `home/<用户名>/classification_order.json`（分类顺序）、`home/<用户名>/choices_sort.json`（选择列表排序、置顶与最近使用记录）与 `home/<用户名>/modtags`（可选标签），原版会忽略这些内容。
 - 默认与原版一致，同一对象可以同时出现在多个分类中；如需「一个对象只属于一个分类」，可在「环境设置」中关闭「对象可属于多个分类」，此时对象只归入排序最靠前的分类。切换该选项不会修改分类文件。
 - 新版特有的数据（如单个 `.ini` 形式导入的 Mod）原版无法识别，回到原版使用时这些 Mod 可能无法加载。

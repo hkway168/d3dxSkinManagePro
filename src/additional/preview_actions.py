@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import tkinter
-import tkinter.filedialog
 
 import core
 
-from .add_preview import apply_preview, apply_preview_from_file, get_clipboard_image, has_preview, IMAGE_SUFFIXES
+from .add_preview import apply_preview, get_clipboard_image, has_preview
 
 
 class FullScreenPreview (object):
@@ -51,57 +50,46 @@ def show_full_screen_preview(SHA: str) -> bool:
 
 
 def get_current_sha() -> str | None:
-    """获取预览区域当前对应的 Mod SHA, 未选中时提示并返回 None"""
+    """获取预览区域当前对应的 Mod SHA, 未选中时返回 None"""
     SHA = str(core.window.interface.mods_manage.label_SHA['text'])
 
     if not SHA or SHA == 'SHA' or core.module.mods_index.get_item(SHA) is None:
-        core.window.messagebox.showinfo(title='未选中 Mod', message='请先在选择列表中选中一个 Mod')
         return None
 
     return SHA
 
 
+PREVIEW_HINT = '左键单击 查看全屏预览图\n右键单击 从剪切板拉取图片\n\n或将图片文件拖拽至窗口添加'
+
+
 def bin_preview_click(*args):
-    """左键预览区域: 有预览图时全屏预览, 暂无预览图时引导用户设置"""
+    """左键预览区域: 有预览图时全屏预览"""
     SHA = get_current_sha()
     if SHA is None: return
-    if has_preview(SHA) and show_full_screen_preview(SHA): return
+    if has_preview(SHA): show_full_screen_preview(SHA)
 
-    clipboard = get_clipboard_image()
 
-    if clipboard is not None:
-        answer = core.window.messagebox.askyesnocancel(
-            title='暂无预览图',
-            message='该 Mod 暂无预览图\n检测到剪贴板中有图片, 是否将其设为预览图?\n\n是：使用剪贴板中的图片\n否：从文件中选择图片')
+def _is_preview_empty() -> bool:
+    """当前选中了 Mod 且预览区域没有显示图片"""
+    if get_current_sha() is None: return False
+    return not str(core.window.interface.mods_manage.label_preview['image'])
 
-        if answer is None: return
 
-        if answer:
-            content, suffix = clipboard
-            apply_preview(SHA, content, suffix)
-            return
+def bin_preview_hint_update(*args):
+    """鼠标在预览区域时: 无预览图则显示提示, 否则隐藏"""
+    annotation = core.window.annotation_toplevel
 
-        select_preview_file(SHA)
+    if not _is_preview_empty():
+        annotation.withdraw()
         return
 
-    answer = core.window.messagebox.askyesno(
-        title='暂无预览图',
-        message='该 Mod 暂无预览图\n是否选择一张图片作为预览图?\n\n也可以直接将图片拖入窗口')
-
-    if not answer: return
-
-    select_preview_file(SHA)
+    annotation.update_content(PREVIEW_HINT)
+    annotation.deiconify()
+    annotation.update_position()
 
 
-def select_preview_file(SHA: str):
-    patterns = ' '.join(f'*{x}' for x in IMAGE_SUFFIXES)
-    filepath = tkinter.filedialog.askopenfilename(
-        title='选择预览图',
-        filetypes=[('图片', patterns), ('所有文件', '*')])
-
-    if not filepath: return
-
-    apply_preview_from_file(SHA, filepath)
+def bin_preview_hint_leave(*args):
+    core.window.annotation_toplevel.withdraw()
 
 
 def bin_preview_right_click(*args):

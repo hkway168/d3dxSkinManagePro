@@ -34,6 +34,9 @@ def initial():
     modify_classification.bind_context_menu(core.window.interface.mods_manage)
     core.window.interface.mods_manage.label_preview.bind('<Button-1>', preview_actions.bin_preview_click)
     core.window.interface.mods_manage.label_preview.bind('<Button-3>', preview_actions.bin_preview_right_click)
+    core.window.interface.mods_manage.label_preview.bind('<Enter>', preview_actions.bin_preview_hint_update)
+    core.window.interface.mods_manage.label_preview.bind('<Motion>', preview_actions.bin_preview_hint_update)
+    core.window.interface.mods_manage.label_preview.bind('<Leave>', preview_actions.bin_preview_hint_leave)
     modify_item_data.bind_context_menu(core.window.interface.mods_manage.treeview_choices)
 
 

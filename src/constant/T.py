@@ -71,7 +71,7 @@ TEXT_HELP = """d3dxSkinManagePro 使用帮助
 
     ● 预览
         左键：全屏预览该预览图，单击或按 Esc 关闭；
-              若该 Mod 暂无预览图，可选择使用剪贴板中的图片或从文件中选择图片进行设置。
+              若该 Mod 暂无预览图，鼠标移到预览区域会显示设置提示。
         右键：将剪贴板中的图片（截图或复制的图片文件）直接设为预览图。
         已有预览图时，替换前会提示是否覆盖。
 
@@ -107,17 +107,21 @@ TEXT_HELP = """d3dxSkinManagePro 使用帮助
     ● 重新设置即可替换原有预览图（会提示是否覆盖），旧的预览图文件会被自动清理。
     ● 若 Mod 文件夹内自带 preview.png/jpg，将会被自动采用。
 
-    ● 分类 / 对象缩略图：在分类列表或对象列表中右键某一项 →「设置缩略图…」，选择本地图片。
+    ● 分类 / 对象缩略图：在分类列表或对象列表中右键某一项 →「设置缩略图…」选择本地图片，
+        或「使用剪贴板图片设置缩略图」直接使用截图或复制的图片文件。
         建议使用 128×128 及以上的正方形图片；非正方形会按比例缩放并留出透明边，
         超过 256 像素的图片保存时会等比缩小。
-        图片保存为 home\\<用户名>\\thumbnail\\<名称>.png，同名的分类与对象共用同一张缩略图；
+        图片保存为 resources\\thumbnail\\<用户名>\\<名称>.png，同名的分类与对象共用同一张缩略图；
         名称中含有文件名不允许的字符（\\ / : * ? " < > |）时无法设置。
         重命名分类时，若新名称尚无缩略图，会自动复制旧名称的缩略图。
         如需删除缩略图，请直接在缩略图目录中删除对应图片，重新登录后生效。
-    ● 缩略图查找规则：加载 resources\\thumbnail 与 home\\<用户名>\\thumbnail 目录（含子目录）下的图片，
-        文件名（去掉后缀，不含子目录路径）即名称，可按角色、游戏等自由建子目录整理。
-        同名图片：用户目录优先于 resources\\thumbnail；同一目录中层级越浅越优先，同层按路径字母序。
+    ● 缩略图查找规则：登录后加载 resources\\thumbnail\\<用户名> 目录（含子目录）下的图片，
+        文件名（去掉后缀，不含子目录路径）即名称，可按角色等自由建子目录整理。
+        不存在 resources\\thumbnail\\<用户名> 文件夹时，登录后会给予提示。
+        同名图片：层级越浅越优先，同层按路径字母序。
         先精确匹配，再按「头像匹配算法」近似匹配。不再支持 _redirection.ini。
+        不再读取 home\\<用户名>\\thumbnail，登录时其中的图片会移动到 resources\\thumbnail\\<用户名>
+        （保留子目录结构；已有同名图片时不移动并给予提示）。
 
 
 五、环境设置
@@ -180,7 +184,6 @@ TEXT_HELP = """d3dxSkinManagePro 使用帮助
         classification\\       分类配置
         modsIndex\\            Mod 索引（self-index.json）
         work\\                 3DMigoto 工作目录（由 XXMI Launcher 部署，Mods 解压于 work\\Mods）
-        thumbnail\\            用户级缩略图（可选，与 resources\\thumbnail 叠加，同名时优先）
         classification_order.json  分类顺序
         choices_sort.json     选择列表的排序设置、置顶 Mod 与最近使用记录
         modtags               可选标签
@@ -189,7 +192,7 @@ TEXT_HELP = """d3dxSkinManagePro 使用帮助
     resources\\
         mods\\                 以 SHA 命名的 Mod 原始文件
         preview\\              预览图
-        thumbnail\\            分类与对象缩略图（含子目录，文件名即名称）
+        thumbnail\\<用户名>\\   分类与对象缩略图（登录时仅加载对应用户，含子目录，文件名即名称）
     local\\
         7zip\\7z.exe           导入与加载 Mod 所依赖的解压程序
 
@@ -265,7 +268,7 @@ ANNOTATION_ANNOTATION_LEVEL = """描述提示词数量
 
 ANNOTATION_THUMBNAIL_APPROXIMATE = """头像匹配算法
 决定分类 / 对象列表的缩略图如何与
-resources\\thumbnail 与用户 thumbnail 目录下的图片名称配对
+resources\\thumbnail\\<用户名> 目录下的图片名称配对
 (名称完全相同时始终优先精确命中)
 
 精确匹配 - 仅使用名称完全相同的图片
