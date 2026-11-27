@@ -12,7 +12,7 @@ from .structure import *
 
 PROJECT = "d3dxSkinManagePro"
 
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 
 CODE_NAME = "kamisa"
 
