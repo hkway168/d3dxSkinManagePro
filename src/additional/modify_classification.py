@@ -585,11 +585,11 @@ class ObjectContextMenu (_ContextMenu):
         self.menu.add_command(label='添加对象', command=lambda: add_object(classname), enabled=enabled)
         self.menu.add_command(label='管理子对象', command=lambda: manage_objects(classname, iid or None), enabled=enabled)
 
-        if classname == UNCLASSIFIED and iid:
-            targets = [x for x in core.module.mods_manage.get_class_list() if x != UNCLASSIFIED]
+        if classname and iid:
+            targets = [x for x in core.module.mods_manage.get_class_list() if x not in (UNCLASSIFIED, classname)]
             self.menu.add_cascade(
                 label='移动到分类',
-                items=[(x, lambda x=x: move_object_to_class(iid, x)) for x in targets],
+                items=[(x, lambda x=x: move_object_to_class(iid, x, classname)) for x in targets],
             )
 
         set_thumbnail.add_to_menu(self.menu, iid or None)
@@ -620,15 +620,33 @@ def manage_objects(classname: str, preset: str | None = None):
     _start(ManageObjects, classname, preset)
 
 
-def move_object_to_class(object_: str, classname: str):
-    """将对象移动到指定分类 (追加到分类参照文件末尾)"""
+def move_object_to_class(object_: str, classname: str, from_classname: str | None = None):
+    """将对象移动到指定分类 (追加到目标分类参照文件末尾, 并从原分类中移除)"""
     if not object_ or not classname or classname == UNCLASSIFIED: return
+    if from_classname == classname: return
+
+    changed = False
 
     objects = _reference_objects(classname)
-    if object_ in objects: return
+    if object_ not in objects:
+        core.module.mods_manage.set_reference_object_list(classname, objects + [object_])
+        changed = True
 
-    core.log.debug(f"对象 \"{object_}\" 移动到分类 \"{classname}\" ")
-    core.module.mods_manage.set_reference_object_list(classname, objects + [object_])
+    if from_classname and from_classname != UNCLASSIFIED:
+        source_objects = _reference_objects(from_classname)
+        if object_ in source_objects:
+            core.module.mods_manage.set_reference_object_list(
+                from_classname, [x for x in source_objects if x != object_]
+            )
+            changed = True
+
+    if not changed: return
+
+    if from_classname and from_classname != UNCLASSIFIED:
+        core.log.debug(f"对象 \"{object_}\" 从分类 \"{from_classname}\" 移动到分类 \"{classname}\" ")
+    else:
+        core.log.debug(f"对象 \"{object_}\" 移动到分类 \"{classname}\" ")
+
     _refresh_in_background()
 
     try: core.window.status.set_status(f"已将对象 \"{object_}\" 移动到分类 \"{classname}\"")

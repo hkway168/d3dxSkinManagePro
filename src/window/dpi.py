@@ -62,3 +62,4 @@ def treeview_row_height(lines: int = 2) -> int:
 def apply_style(style) -> None:
     """应用与 DPI 相关的样式, 切换主题后需要重新调用"""
     style.configure("Treeview", rowheight=treeview_row_height(2))
+    style.configure("HelpNav.Treeview", rowheight=line_height() + scale(14))

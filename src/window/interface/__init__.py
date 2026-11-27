@@ -25,7 +25,7 @@ class Interface(object):
         self.notebook.add(self.frame_tools, text='工具')
 
         self.frame_about = ttkbootstrap.Frame(self.notebook)
-        self.notebook.add(self.frame_about, text='关于')
+        self.notebook.add(self.frame_about, text='帮助')
 
         self.mods_manage = ModsManage(self.frame_mods_manage)
         self.d3dx_manage = D3dxManage(self.frame_d3dx_manage)

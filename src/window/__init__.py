@@ -160,7 +160,6 @@ def initial():
 
     _alt_set = annotation_toplevel.register
     _alt_set(login.label_description, T.ANNOTATION_USER_DESCRIPTION, 2)
-    _alt_set(login.button_login, T.ANNOTATION_LOGIN, 1)
     _alt_set(status.label_logout, T.ANNOTATION_LOGOUT, 1)
     interface.initial()
 
